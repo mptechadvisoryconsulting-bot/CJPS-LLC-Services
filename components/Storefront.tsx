@@ -1,0 +1,30 @@
+'use client';
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+
+type Product={id:number;name:string;category:string;price:number;icon:string;description:string};
+const products:Product[]=[
+{id:1,name:'Commercial Disinfectant',category:'Chemicals',price:24.99,icon:'🧴',description:'Sample commercial cleaning product.'},
+{id:2,name:'Heavy-Duty Trash Bags',category:'Paper Products',price:29.99,icon:'🗑️',description:'Sample heavy-duty liner product.'},
+{id:3,name:'Microfiber Mop Kit',category:'Equipment',price:59.99,icon:'🧹',description:'Sample commercial floor-care kit.'},
+{id:4,name:'Nitrile Gloves',category:'PPE',price:12.99,icon:'🧤',description:'Sample disposable PPE product.'},
+{id:5,name:'Paper Towels',category:'Paper Products',price:34.99,icon:'🧻',description:'Sample commercial paper product.'},
+{id:6,name:'Safety Glasses',category:'PPE',price:9.99,icon:'🥽',description:'Sample protective equipment.'}
+];
+export default function Storefront(){
+ const [category,setCategory]=useState('All'); const [cart,setCart]=useState<Product[]>([]); const [cartOpen,setCartOpen]=useState(false);
+ const shown=useMemo(()=>category==='All'?products:products.filter(p=>p.category===category),[category]);
+ const total=cart.reduce((s,p)=>s+p.price,0);
+ const checkout=async()=>{try{const r=await fetch('/api/checkout',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({items:cart.map(p=>({id:p.id,name:p.name,price:p.price,quantity:1}))})});const d=await r.json();if(d.url) location.href=d.url; else alert(d.error||'Checkout is not configured yet.');}catch{alert('Checkout could not be started. Please try again.')}};
+ return <>
+ <div className="topbar">🚚 Free local delivery on qualifying orders</div>
+ <nav className="nav"><Link href="/" className="brand">CJPS <span>LLC</span> SERVICES</Link><div className="links"><a href="#services">Cleaning Services</a><a href="#shop">Shop Supplies</a><a href="#about">About</a><a href="#contact">Contact</a><Link href="/login">Account</Link><button className="btn btn-navy" onClick={()=>setCartOpen(!cartOpen)}>Cart ({cart.length})</button><a className="btn btn-gold quote" href="#quote">Request a Quote</a></div></nav>
+ {cartOpen&&<div style={{position:'fixed',right:20,top:100,zIndex:20,width:'min(390px,calc(100% - 40px))'}} className="card"><h3>Your Cart</h3>{cart.length===0?<p>Your cart is empty.</p>:cart.map((p,i)=><div key={i} style={{display:'flex',justifyContent:'space-between',margin:'12px 0'}}><span>{p.name}</span><b>${p.price.toFixed(2)}</b></div>)}<hr/><p><b>Total: ${total.toFixed(2)}</b></p><button disabled={!cart.length} onClick={checkout} className="btn btn-gold" style={{width:'100%'}}>Stripe Test Checkout</button><p style={{fontSize:12,color:'#667'}}>Payments remain in Stripe TEST mode during preview.</p></div>}
+ <header className="hero"><div className="hero-inner"><div className="hero-copy"><div className="eyebrow">Commercial Cleaning • Professional Supplies</div><h1>Clean Spaces.<br/>Professional Supplies.</h1><p>One convenient place to request commercial janitorial services and purchase professional cleaning supplies.</p><div className="actions"><a href="#quote" className="btn btn-gold">Request a Free Quote</a><a href="#shop" className="btn btn-navy">Shop Supplies</a></div></div><div className="hero-art"><div className="clean-card"><div><div className="icon">🧹</div><h2>Professional Commercial Cleaning</h2><p>Replace this demo area with approved CJPS photography.</p></div></div></div></div></header>
+ <section id="services" className="section"><h2>Cleaning Services</h2><p className="lead">A simple, professional service experience for commercial customers.</p><div className="service-grid"><div className="card service-card"><h3>Commercial Cleaning</h3><p>Routine professional cleaning for business environments.</p></div><div className="card service-card"><h3>Floor Care</h3><p>Floor cleaning and care options based on customer needs.</p></div><div className="card service-card"><h3>Restroom Service</h3><p>Cleaning and sanitation for commercial facilities.</p></div><div className="card service-card"><h3>Custom Service</h3><p>Request a quote for a cleaning plan tailored to your facility.</p></div></div></section>
+ <section id="shop" className="section"><h2>Featured Cleaning Supplies</h2><p className="lead">Demo catalog — products, pricing and availability are editable.</p><div className="filters">{['All','Chemicals','Paper Products','Equipment','PPE'].map(c=><button key={c} onClick={()=>setCategory(c)} className={'pill '+(category===c?'active':'')}>{c}</button>)}</div><div className="product-grid">{shown.map(p=><article className="card" key={p.id}><div className="product-img">{p.icon}</div><h3>{p.name}</h3><p>{p.description}</p><div className="price">${p.price.toFixed(2)}</div><button className="btn btn-gold" style={{width:'100%'}} onClick={()=>setCart([...cart,p])}>Add to Cart</button></article>)}</div></section>
+ <section id="about" className="trust"><div className="section"><h2>Built Around Professional Service</h2><p className="lead">CJPS can use this section for approved company information. The preview intentionally avoids invented certifications, customer counts, testimonials, addresses or service areas.</p><div className="stat-grid"><div className="card stat"><strong>Simple</strong>Quote requests</div><div className="card stat"><strong>Mobile</strong>Employee workflow</div><div className="card stat"><strong>Secure</strong>Private job photos</div><div className="card stat"><strong>Convenient</strong>Online payments</div></div></div></section>
+ <section id="quote" className="band"><div className="section"><div><h2>Need Commercial Cleaning?</h2><p>Tell CJPS about your facility and service needs.</p></div><a href="mailto:REPLACE_WITH_CJPS_EMAIL" className="btn btn-gold">Request a Quote</a></div></section>
+ <footer id="contact" className="footer"><div className="footer-inner"><div><b>CJPS LLC SERVICES</b><p>Commercial Cleaning & Supplies</p></div><div><b>Contact</b><p>Contact details will be added after CJPS approval.</p></div></div></footer>
+ </>;
+}
